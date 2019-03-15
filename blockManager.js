@@ -4,18 +4,34 @@ class blockManager
 	{
 		this.fallen = []; //Texture (Empty/Filled) type array
 		this.blocks = []; //Block type array
-		// this.blocks.push(new TBlock(4,0,color(255,0,0),true));
 
-		// this.blocks.push(new ZBlock(3,7,color(0,0,255),true));
 		this.canPress=true;
-		this.timeLease = 0.2; //in seconds
+		this.gameOver = false;
+
+		this.timeLease; //in seconds
 		this.timex = millis();
+		this.spawnTime=millis();
+		this.timeLieaseTotal = 0.6;
+		this.startTime=millis();
+
+		this.nextBlock;
+
+		this.precTime = 0;
 	}
 
 	update()
 	{
-		this.move();
 
+		if(Math.floor((millis() - this.startTime)/1000) % 5 == 0 && Math.floor((millis() - this.startTime)/1000)!=this.precTime)
+		{
+			console.log(this.timeLieaseTotal)
+
+			this.timeLieaseTotal-=0.01;
+			this.precTime = Math.floor((millis() - this.startTime)/1000);
+		}
+		this.gameOverf();
+
+		this.move();
 
 		if(this.allFallen())
 		{
@@ -35,7 +51,6 @@ class blockManager
 				}
 
 				this.blocks.splice(this.blocks.length-1,1);
-
 			}
 
 			this.rowWin();
@@ -93,6 +108,19 @@ class blockManager
 			delay(0.5);
 	}
 
+	gameOverf()
+	{
+		if(this.gameOver)
+		{
+			textSize(72);
+			fill(255,0,0);
+			stroke(255);
+			text("GAME OVER",180,400);
+			noLoop();
+		}
+
+	}
+
 	getFallenAt(x,y)
 	{
 		for (var i = this.fallen.length - 1; i >= 0; i--)
@@ -106,8 +134,19 @@ class blockManager
 
 	spawnNext()
 	{
-		var x=4,y=0;
-		if(this.allFallen())
+		var repeat = 1;
+		delay(0.2);
+
+		if(this.nextBlock !== undefined)
+		{
+			this.blocks.push(this.nextBlock);
+		}
+		else
+			repeat = 2;	
+
+		for(var i=0;i<repeat;i++)
+		{
+			var x=4,y=0;
 			switch(Math.floor(Math.random()*7))
 			{
 				case 0:
@@ -137,10 +176,15 @@ class blockManager
 				case 6:
 					this.blocks.push(new TBlock(x,y,color(255,0,0),true))
 				break;
-
 			}
-	}
+		}
+		
 
+		this.nextBlock = this.blocks.pop();
+
+		if(this.blocks[this.blocks.length-1].collision() || this.blocks[this.blocks.length-1].edge())
+			this.gameOver=true;
+	}
 
 	allFallen()
 	{
@@ -149,9 +193,9 @@ class blockManager
 		for (var i = this.blocks.length - 1; i >= 0; i--)
 			if(!this.blocks[i].fallen)
 				return false;
+		this.spawnTime=millis();
 		return true;
 	}
-
 
 	move()
 	{
@@ -179,7 +223,7 @@ class blockManager
 		if(keyIsDown(DOWN_ARROW))
 			this.timeLease=0.03;
 		else
-			this.timeLease = 0.2;
+			this.timeLease = this.timeLieaseTotal;
 
 	}
 
@@ -191,7 +235,17 @@ class blockManager
 		for(var i=0;i<this.fallen.length;i++)
 			this.fallen[i].draw();
 
+		this.drawNext();
+	}
 
+	drawNext()
+	{
+		textSize(40);
+		fill(255);
+		text("NEXT",630,50);
+
+		if(this.nextBlock !== undefined)
+			this.nextBlock.draw(6.5,2);
 	}
 
 	isOccupied(x,y)

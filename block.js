@@ -170,11 +170,11 @@ class Block
 		}
 	}
 
-	draw()
+	draw(x=0,y=0)
 	{
 		for(var i=0;i<this.texture.length;i++)
 			for(var j=0;j<this.texture.length;j++)
-				this.texture[i][j].draw(this.x,this.y);
+				this.texture[i][j].draw(this.x+x,this.y+y);
 	}
 
 	leftCollision()
